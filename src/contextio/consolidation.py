@@ -14,9 +14,9 @@ from collections.abc import Callable, Sequence
 from typing import Protocol, runtime_checkable
 
 from contextio.memory import Memory, MemoryKind, MemoryStore, heuristic_importance
-from contextio.retrieval.base import Query, StoreCache
+from contextio.retrieval.base import Query, Scored, StoreCache
 from contextio.selection import Selection
-from contextio.strategies import Strategy
+from contextio.strategies import TwoStageStrategy
 from contextio.text import jaccard, tokenize
 
 Completer = Callable[[str], str]
@@ -234,7 +234,10 @@ class CompressedStrategy:
     """
 
     def __init__(
-        self, inner: Strategy, consolidator: Consolidator | None = None, name: str | None = None
+        self,
+        inner: TwoStageStrategy,
+        consolidator: Consolidator | None = None,
+        name: str | None = None,
     ) -> None:
         self.inner = inner
         self.consolidator = consolidator or RuleBasedConsolidator()
@@ -246,6 +249,16 @@ class CompressedStrategy:
 
     def consolidated(self, store: MemoryStore) -> MemoryStore:
         return self._cache.get(store)
+
+    @property
+    def uses_budget(self) -> bool:
+        return getattr(self.inner, "uses_budget", True)
+
+    def rank(self, query: Query, store: MemoryStore) -> list[Scored]:
+        return self.inner.rank(query, self.consolidated(store))
+
+    def choose(self, scored: list[Scored], store: MemoryStore, budget: int | None) -> Selection:
+        return self.inner.choose(scored, self.consolidated(store), budget)
 
     def select(self, query: Query, store: MemoryStore, budget: int | None) -> Selection:
         return self.inner.select(query, self.consolidated(store), budget)

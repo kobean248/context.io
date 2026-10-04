@@ -11,6 +11,7 @@ from contextio.retrieval import (
     Query,
     RecencyRetriever,
     Retriever,
+    Scored,
     VectorRetriever,
 )
 from contextio.selection import (
@@ -29,14 +30,29 @@ class Strategy(Protocol):
     def select(self, query: Query, store: MemoryStore, budget: int | None) -> Selection: ...
 
 
+@runtime_checkable
+class TwoStageStrategy(Strategy, Protocol):
+    """A strategy whose budget-independent ranking can be reused across budgets."""
+
+    def rank(self, query: Query, store: MemoryStore) -> list[Scored]: ...
+
+    def choose(self, scored: list[Scored], store: MemoryStore, budget: int | None) -> Selection: ...
+
+
 class FullContext:
     """Send the entire history, ignoring the budget. The accuracy upper bound and cost ceiling."""
 
     name = "full"
+    uses_budget = False
+
+    def rank(self, query: Query, store: MemoryStore) -> list[Scored]:
+        return [Scored(m, 1.0) for m in sorted(store, key=lambda m: (m.timestamp, m.id))]
+
+    def choose(self, scored: list[Scored], store: MemoryStore, budget: int | None) -> Selection:
+        return make_selection([s.memory for s in scored], store.tokens, budget)
 
     def select(self, query: Query, store: MemoryStore, budget: int | None) -> Selection:
-        memories = sorted(store, key=lambda m: (m.timestamp, m.id))
-        return make_selection(memories, store.tokens, budget)
+        return self.choose(self.rank(query, store), store, budget)
 
 
 class RankedStrategy:
@@ -47,10 +63,15 @@ class RankedStrategy:
         self.retriever = retriever
         self.selector = selector or GreedySelector()
 
-    def select(self, query: Query, store: MemoryStore, budget: int | None) -> Selection:
-        scored = self.retriever.score(query, store)
+    def rank(self, query: Query, store: MemoryStore) -> list[Scored]:
+        return self.retriever.score(query, store)
+
+    def choose(self, scored: list[Scored], store: MemoryStore, budget: int | None) -> Selection:
         chosen = self.selector.select(scored, store.tokens, budget)
         return make_selection(chosen, store.tokens, budget)
+
+    def select(self, query: Query, store: MemoryStore, budget: int | None) -> Selection:
+        return self.choose(self.rank(query, store), store, budget)
 
     def __repr__(self) -> str:
         return (
