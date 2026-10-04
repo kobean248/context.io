@@ -71,8 +71,8 @@ class BenchmarkConfig:
     token_counter: TokenCounter | None = None
 
 
-Answerer = Callable[[BenchUser, BenchQuery, Selection], bool]
-"""Optional hook that answers a query from the selected context and grades it."""
+Answerer = Callable[[BenchUser, BenchQuery, Selection], bool | None]
+"""Optional hook that answers a query from the selected context and grades it (None = ungraded)."""
 Progress = Callable[[int, int], None]
 
 
