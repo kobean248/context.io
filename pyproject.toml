@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "contextio"
+version = "0.1.0"
+description = "Benchmark and toolkit for selecting, compressing, and caching user context under a token budget."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Nilesh Singh" }]
+keywords = ["llm", "context-engineering", "retrieval", "memory", "rag", "benchmark"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+tiktoken = ["tiktoken>=0.7"]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.urls]
+Repository = "https://github.com/kobean248/context.io"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contextio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
