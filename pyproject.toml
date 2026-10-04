@@ -26,6 +26,9 @@ dependencies = []
 tiktoken = ["tiktoken>=0.7"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
+[project.scripts]
+contextio = "contextio.cli:main"
+
 [project.urls]
 Repository = "https://github.com/kobean248/context.io"
 
