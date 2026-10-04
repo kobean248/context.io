@@ -91,6 +91,8 @@ def test_heuristic_importance_rewards_preferences_and_decisions():
     chit_chat = heuristic_importance("The weather was nice today.")
     preference = heuristic_importance("I prefer PostgreSQL for most things.")
     decision = heuristic_importance("We decided to use Redis for caching on our project.")
+    settled = heuristic_importance("Okay, settled: the app will use Redis for caching.")
     assert chit_chat < preference
     assert chit_chat < decision
+    assert chit_chat < settled
     assert 0.0 <= decision <= 1.0

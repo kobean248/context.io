@@ -138,7 +138,7 @@ _IMPORTANCE_CUES: tuple[tuple[re.Pattern[str], float], ...] = tuple(
     (re.compile(pattern, re.IGNORECASE), weight)
     for pattern, weight in (
         (r"\b(i|we)\s+(prefer|always|never|usually|mostly)\b", 0.35),
-        (r"\b(decided|settled on|going with|chose|picked|agreed)\b", 0.35),
+        (r"\b(decided|settled|going with|chose|picked|agreed)\b", 0.35),
         (r"\b(switched|moved over|migrated|changed my mind|no longer)\b", 0.3),
         (r"\b(my|our)\s+(project|team|stack|company|role|job)\b", 0.15),
         (r"\b(i am|i'm|i work)\b", 0.1),
