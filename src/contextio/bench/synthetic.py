@@ -135,6 +135,7 @@ DECISION_TEMPLATES = (
     "Okay, settled: {project} will use {choice} for the {aspect}. Mainly because {reason}.",
     "After a lot of back and forth we picked {choice} as the {aspect} for {project}, "
     "since {reason}.",
+    "{choice} it is for the {aspect} on {project}; {reason}.",
 )
 REVISION_TEMPLATES = (
     "Change of plans on {project}: we switched the {aspect} from {old} to {choice} "
@@ -153,6 +154,7 @@ DECISION_QUERIES = (
 INTRO_TEMPLATES = (
     "I'm starting a new project called {project}: {domain}. Planning to build it with {stack}.",
     "New side project alert. {project} is {domain}, and I'm writing it in {stack}.",
+    "Been hacking on {project} lately, {domain} built on {stack}.",
 )
 STATUSES = (
     ("the schema is finalized and I'm now wiring up the HTTP handlers", "handlers"),
@@ -166,6 +168,7 @@ STATUS_TEMPLATES = (
     "Quick update on {project}: {status}.",
     "Status on {project}: {status}.",
     "{project} update, {status}.",
+    "Progress on {project}: {status}.",
 )
 CONTINUATION_QUERIES = (
     "Let's pick up where we left off on {project}.",
@@ -181,6 +184,33 @@ STYLE_QUERIES = (
     "Give me a quick rundown of consistent hashing.",
     "How do bloom filters work?",
     "What's the difference between a process and a thread?",
+)
+ASIDES = (
+    "I usually go for a run before work.",
+    "I prefer green tea over coffee these days.",
+    "We decided to repaint the kitchen this weekend.",
+    "My team is moving to a four-day week.",
+    "I've switched to Obsidian for my notes.",
+    "I mostly listen to lo-fi beats while coding.",
+    "I'm thinking about learning Spanish.",
+    "Update: the apartment move is finally done.",
+    "We picked a new sprint cadence at work, two weeks instead of one.",
+    "I always forget to drink water when I'm focused.",
+    "My team is hiring two new engineers.",
+    "I never check email before lunch anymore.",
+    "We agreed to do a team offsite in the spring.",
+    "I've moved over to a standing desk.",
+    "I'm working on a talk for a local meetup.",
+    "Note that I'm off next Friday.",
+    "Status: still recovering from a cold.",
+    "I prefer mechanical keyboards, the louder the better.",
+    "We chose a new office plant, it's a fiddle leaf fig.",
+    "My company switched to a new expense tool and everyone hates it.",
+)
+TECH_ASIDES = (
+    "A friend keeps telling me to try {db}, but I haven't had the time.",
+    "Someone at work said {db} handles analytics workloads better, not sure that's true.",
+    "Saw a conference talk about {db} internals, pretty interesting.",
 )
 GREETINGS = ("Hey!", "Morning.", "Back again.", "Hope you're well.", "Hi there.")
 SIGNOFFS = (
@@ -477,7 +507,15 @@ class _UserBuilder:
         return BenchUser(self.user_id, self.memories, self.queries)
 
     def _distractor_session(self, topic: str, day: float) -> None:
-        self._memory(self.rng.choice(TOPICS[topic].questions), day)
+        rng = self.rng
+        question = rng.choice(TOPICS[topic].questions)
+        roll = rng.random()
+        if roll < 0.4:
+            question = f"{rng.choice(ASIDES)} Anyway, {question[0].lower()}{question[1:]}"
+        elif roll < 0.5:
+            aside = rng.choice(TECH_ASIDES).format(db=rng.choice(sorted(DATABASES)))
+            question = f"{aside} {question}"
+        self._memory(question, day)
         self._assistant(topic, day)
         self._followups(topic, day, max_pairs=2)
 
